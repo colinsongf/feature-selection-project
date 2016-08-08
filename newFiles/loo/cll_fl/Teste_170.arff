@@ -1,0 +1,18 @@
+@relation 'Teste_170.arff'
+
+@attribute	x1	real
+@attribute	x2	real
+@attribute	x3	real
+@attribute	x4	real
+@attribute	x5	real
+@attribute	x6	real
+@attribute	x7	real
+@attribute	x8	real
+@attribute	x9	real
+@attribute	x10	real
+
+@attribute	class	{1,2}
+
+@data
+52.0 39.0 56.0 43.0 58.0 57.14301 68.0 96.0 70.20243 73.0 1
+44.0 30.0 42.0 30.0 60.0 42.75881 57.0 65.0 56.70526 56.0 2
