@@ -6,10 +6,12 @@ import weka.core.jvm as jvm
 from weka.classifiers import Classifier, Evaluation
 from weka.core.classes import Random
 from weka.core.converters import Loader
-from . import FileSystemDealer, Classificador, ResultadoClassificacao
+import file_manager_module as fmm
+from Classificador import Classificador
+from ResultadoClassificacao import ResultadoClassificacao
 
 
-class ClassificationProcess(FileSystemDealer):
+class ClassificationProcess(object):
 
 	# ATTR #
 	classifiersFile 	= None
@@ -25,8 +27,6 @@ class ClassificationProcess(FileSystemDealer):
 
 	# METHODS #
 	def __init__(self, classifiersFile=None, filesToClassifyFile=None, resultsDirPath=None, folds=2, printResults=False):
-		FileSystemDealer.__init__(self)
-
 		if classifiersFile is not None:
 			self.classifiersFile = classifiersFile
 		else:
@@ -161,7 +161,7 @@ class ClassificationProcess(FileSystemDealer):
 
 
 	def run(self):
-		self.setEncode()
+		fmm.setEncode()
 		print("CLASSIFY >> STARTING... "),
 		jvm.start()
 		print("OK")

@@ -1,4 +1,5 @@
-from libs import SelectionProcess, ClassificationProcess
+from libs.SelectionProcess import SelectionProcess
+from libs.ClassificationProcess import ClassificationProcess
 import weka.core.jvm as jvm
 import numpy as np
 import os

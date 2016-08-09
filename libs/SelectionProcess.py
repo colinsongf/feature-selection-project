@@ -3,10 +3,11 @@
 import os
 import string
 import numpy as np
-from libs.FeatureSelectionMethods import CapacityAnalysis
-from . import FileSystemDealer, ResultadoSelecao
+from libs.FeatureSelectionMethods.CapacityAnalysis import CapacityAnalysis
+import file_manager_module as fmm
+from ResultadoSelecao import ResultadoSelecao
 
-class SelectionProcess(FileSystemDealer):
+class SelectionProcess(object):
 
 	# ATTR #
 	dataPath 				= '/home/eduardo/Documentos/Pos-Graduacao/Trabalho mestrado/Dados/WFS'
@@ -19,7 +20,6 @@ class SelectionProcess(FileSystemDealer):
 
 
 	def __init__(self, numberOfCl=1, dataPath=None, fileExtension=None, saveResults=True):
-		FileSystemDealer.__init__(self)
 		if(numberOfCl is None or numberOfCl <= 0):
 			raise Exception("Invalid NUMBER OF CLASSIFICATORS to select")
 		self.numberOfCl = numberOfCl
@@ -56,9 +56,9 @@ class SelectionProcess(FileSystemDealer):
 				fClassify.write('{}\n'.format(filePath + "/" + testFileName))
 
 				if(self.fileExtension in result.getFileUsed()):
-					(matA, matB) = self.getMatrixesFromArffFile(existingTestFilePath)
+					(matA, matB) = fmm.getMatrixesFromArffFile(existingTestFilePath)
 				else:
-					(matA, matB) = self.getMatrixesFromFile(existingTestFilePath)
+					(matA, matB) = fmm.getMatrixesFromFile(existingTestFilePath)
 
 				selectedIndexes = result.getResultadoSelecao()
 				selectedIndexes = selectedIndexes[0:self.numberOfCl]
@@ -127,22 +127,22 @@ class SelectionProcess(FileSystemDealer):
 		print(">> RUNNING SELECTION SCRIPT")
 		results = []
 
-		samples = self.getSamplesName()
+		samples = fmm.getSamplesName(self.dataPath)
 		numSamples = len(samples)
 
 		for sample in samples:
 			print("Sample: {}".format(sample))
-			comparisons = self.getComparisonsNameFromSample(sample)
+			comparisons = fmm.getComparisonsNameFromSample(self.dataPath, sample)
 			numComparisons = len(comparisons)
 
 			for comparison in comparisons:
 				print("\tComparison: {}".format(comparison))
-				files = self.getSemFilesNames(sample, comparison, self.fileExtension)
+				files = fmm.getSemFilesNames(self.dataPath, sample, comparison, self.fileExtension)
 
 				for f in files:
 					print('\t\tFile: {}: '.format(f)),
 					filePath = self.dataPath + '/' + sample + '/' + comparison + '/' + f
-					[matA, matB] = self.getMatrixesFromArffFile(filePath)
+					[matA, matB] = fmm.getMatrixesFromArffFile(filePath)
 					capacidade = CapacityAnalysis(matA, matB)
 					capacidade.calculate()
 					result = ResultadoSelecao(filePath, sample, comparison, f, capacidade.getSortedIndexes())
