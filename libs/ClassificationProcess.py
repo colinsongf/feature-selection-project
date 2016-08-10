@@ -22,11 +22,10 @@ class ClassificationProcess(object):
 	dataFilePaths 		= []
 	resultList 			= []
 	folds				= None
-	printResults		= None
 
 
 	# METHODS #
-	def __init__(self, classifiersFile=None, filesToClassifyFile=None, resultsDirPath=None, folds=2, printResults=False):
+	def __init__(self, classifiersFile=None, filesToClassifyFile=None, resultsDirPath=None, folds=2):
 		if classifiersFile is not None:
 			self.classifiersFile = classifiersFile
 		else:
@@ -43,8 +42,6 @@ class ClassificationProcess(object):
 			self.resultsDirPath = os.getcwd() + '/results'
 
 		self.folds = folds
-
-		self.printResults = printResults
 
 
 	def setup(self):
@@ -102,18 +99,6 @@ class ClassificationProcess(object):
 		return classifiersResultList
 
 
-	def printResults(self):
-		for result in self.resultList:
-			table = PrettyTable(['Classificador', 'Acuracia'])
-
-			for r in result.getResultados():
-				table.add_row(r)
-
-			print("ARQUIVO: " + result.getFilename())
-			print(table)
-			print
-
-
 	def classify(self):
 		print("CLASSIFY >> CLASSIFYING...")
 		for filePath in self.dataFilePaths:
@@ -169,8 +154,6 @@ class ClassificationProcess(object):
 		self.setup()
 		self.classify()
 		self.writeResults()
-		if(self.printResults):
-			self.printResults()
 
 		print("CLASSIFY >> STOPPING"),
 		jvm.stop()
