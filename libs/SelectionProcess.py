@@ -55,10 +55,7 @@ class SelectionProcess(object):
 
 				fClassify.write('{}\n'.format(filePath + "/" + testFileName))
 
-				if(self.fileExtension in result.getFileUsed()):
-					(matA, matB) = fmm.getMatrixesFromArffFile(existingTestFilePath)
-				else:
-					(matA, matB) = fmm.getMatrixesFromFile(existingTestFilePath)
+				(matA, matB, labels) = fmm.getInputDataFromFile(existingTestFilePath)
 
 				selectedIndexes = result.getResultadoSelecao()
 				selectedIndexes = selectedIndexes[0:self.numberOfCl]
@@ -78,16 +75,19 @@ class SelectionProcess(object):
 					linesToWrite.append('@attribute\tx{}\treal'.format(i+1))
 				linesToWrite.append('')
 				# @attribute class {1, 2}
-				linesToWrite.append('@attribute\tclass\t{}{},{}{}'.format('{', '1', '2', '}'))
+				linesToWrite.append('@attribute\tclass\t{}{}{}'.format('{', ', '.join(labels), '}'))
 				linesToWrite.append('')
 				# @data
 				linesToWrite.append('@data')
+				''' 
+				!!!!! TODO REMOVER HARDCODED DAS LABELS !!!!!
+				'''
 				# DADOS
 				for row in matA:
-					row.append('1')
+					row.append(labels[0])
 					linesToWrite.append(' '.join(str(c) for c in row))
 				for row in matB:
-					row.append('2')
+					row.append(labels[1])
 					linesToWrite.append(' '.join(str(c) for c in row))
 
 				f = open(filePath + '/' + testFileName, 'w')
@@ -111,6 +111,9 @@ class SelectionProcess(object):
 		if(not os.path.isdir(self.resultsDirPath)):
 			os.makedirs(self.resultsDirPath)
 
+		'''
+		!!!!! REMOVER HARDCODED !!!!!
+		'''
 		fileName = 'selection.txt'
 		resultsFilePath = self.resultsDirPath + '/' + fileName
 
@@ -142,7 +145,7 @@ class SelectionProcess(object):
 				for f in files:
 					print('\t\tFile: {}: '.format(f)),
 					filePath = self.dataPath + '/' + sample + '/' + comparison + '/' + f
-					[matA, matB] = fmm.getMatrixesFromArffFile(filePath)
+					[matA, matB] = fmm.getInputDataFromFile(filePath)
 					capacidade = CapacityAnalysis(matA, matB)
 					capacidade.calculate()
 					result = ResultadoSelecao(filePath, sample, comparison, f, capacidade.getSortedIndexes())

@@ -1,0 +1,9 @@
+INSTUPlibs.Classificador
+/home/eduardo/Documentos/Pos-Graduacao/Trabalho mestrado/Python codes/AutomaticClassification/libs/Classificador.py
+INFOS:&&1|1|2|0&&3|3|2|1&&3|4|2|1&&2|5|2|1&&3|3|2|6&&3|4|2|6
+Classificador=1
+Classificador.__init__=6
+libs.Classificador=2
+name=3
+wekaClassifier=4
+__init__=5

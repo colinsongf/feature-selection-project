@@ -67,7 +67,7 @@ def getTesteFilesNames(sample, comparison, extension):
 	return TesteFiles
 
 
-def getMatrixesFromFile(filePath):
+def getDataFromTxtFile(filePath):
 	data = np.loadtxt(filePath)
 
 	[rows, columns] = data.shape
@@ -85,10 +85,10 @@ def getMatrixesFromFile(filePath):
 
 	matA = np.array(matA)
 	matB = np.array(matB)
-	return matA, matB
+	return matA, matB, labels
 
 
-def getMatrixesFromArffFile(filePath):
+def getDataFromArffFile(filePath):
 	f = open(filePath)
 
 	inData = False
@@ -125,4 +125,11 @@ def getMatrixesFromArffFile(filePath):
 
 	matA = np.array(matA).astype(np.float)
 	matB = np.array(matB).astype(np.float)
-	return matA, matB
+	return matA, matB, classLabels
+
+
+def getInputDataFromFile(filePath):
+	if '.arff' in filePath:
+		return getDataFromArffFile(filePath)
+	else:
+		return getDataFromTxtFile(filePath)

@@ -1,0 +1,17 @@
+INSTUPlibs.SelectionProcess
+/home/eduardo/Documentos/Pos-Graduacao/Trabalho mestrado/Python codes/AutomaticClassification/libs/SelectionProcess.py
+INFOS:&&1|1|2|0&&3|3|2|1&&3|4|2|1&&3|5|2|1&&3|6|2|1&&3|7|2|1&&3|8|2|1&&3|9|2|1&&2|10|2|1&&3|9|2|11&&3|3|2|11&&3|8|2|11&&2|12|2|1&&2|13|2|1&&2|14|2|1
+SelectionProcess.__init__=11
+newFilesPath=6
+SelectionProcess=1
+run=14
+dataPath=3
+writeResults=13
+resultsDirPath=4
+writeNewFiles=12
+resultsFilePath=5
+numberOfCl=9
+libs.SelectionProcess=2
+fileExtension=8
+__init__=10
+filesToClassifyFile=7

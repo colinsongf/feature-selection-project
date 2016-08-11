@@ -1,0 +1,3 @@
+weka/classifiers/bayes/BayesNet.class
+weka/classifiers/trees/J48.class
+weka/classifiers/trees/RandomForest.class
