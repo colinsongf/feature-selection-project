@@ -1,146 +1,137 @@
 # coding=utf-8
 
 import os
-import string
-import numpy as np
-from libs.FeatureSelectionMethods.CapacityAnalysis import CapacityAnalysis
 import file_manager_module as fmm
-from ResultadoSelecao import ResultadoSelecao
+import constants
+from libs.FeatureSelectionMethods.CapacityAnalysis import CapacityAnalysis
+from operator import itemgetter
 
-class SelectionProcess(object):
+resultadoSelecao = {
+	'arquivo': None,
+	'indices': None,
+	'amostra': None,
+	'comparacao': None,
+	'nomeArquivo': None
+}
+
+class SelectionModule(object):
 
 	# ATTR #
-	dataPath 				= '/home/eduardo/Documentos/Pos-Graduacao/Trabalho mestrado/Dados/WFS'
-	resultsDirPath			= os.getcwd() + '/results'
-	resultsFilePath			= resultsDirPath + '/selection.txt'
-	newFilesPath			= os.getcwd() + '/newFiles'
-	filesToClassifyFile		= os.getcwd() + '/resources/filesToClassify.txt'
-	fileExtension 			= '.arff'
-	numberOfCl				= None
+	numberOfCl = None
 
 
-	def __init__(self, numberOfCl=1, dataPath=None, fileExtension=None):
+	def __init__(self, numberOfCl=1):
 		if(numberOfCl is None or numberOfCl <= 0):
 			raise Exception("Invalid NUMBER OF CLASSIFICATORS to select")
+		
 		self.numberOfCl = numberOfCl
 
-		if(dataPath is not None):
-			self.dataPath = dataPath
 
-		if(fileExtension is not None):
-			if('.' not in fileExtension):
-				fileExtension = '.' + fileExtension
+	def writeResults(self, results):
+		if(not os.path.isdir(constants.resultsDirPath)):
+			os.makedirs(constants.resultsDirPath)
 
-			self.fileExtension = fileExtension
+		resultFile = open(constants.resultsDirPath + '/' + constants.resultsSelectionFileName, 'w')
+
+		for r in results:
+			resultFile.write('{};{};{};{};{}\n'.format(r['arquivo'], r['amostra'], r['comparacao'], r['nomeArquivo'], ','.join(str(d) for d in r['indices'])))
+
+		resultFile.close()
+
+
+	def writeNewTrainingFile(self, result, resTrainingFile):
+		(inputData, inputLabels) = fmm.getInputDataFromFile(result['arquivo'])
+		
+		# Armazena apenas as colunas selecionadas
+		outputData = []
+		for row in inputData:
+			outputData.append(itemgetter(*result['indices'])(row))
+			
+		# Escreve o novo arquivo
+		filePath = constants.newFilesPath + '/' + result['amostra'] + '/' + result['comparacao']
+		fileName = result['nomeArquivo'][0 : result['nomeArquivo'].index('.')] + '.txt'
+		
+		if(not os.path.isdir(filePath)):
+			os.makedirs(filePath)
+		
+		newTrainingFile = open(filePath + '/' + fileName, 'w')
+		for i in range(0, len(outputData)):
+			newTrainingFile.write('{} {}\n'.format(' '.join(outputData[i]), inputLabels[i]))
+		newTrainingFile.close()
+		
+		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
+		resTrainingFile.write(filePath + '/' + fileName + '\n')
+
+
+	def writeNewTestFile(self, result, resTestFile):
+		fileIndex = result['nomeArquivo'][(result['nomeArquivo'].index('_') + 1) : result['nomeArquivo'].index('.')]
+		
+		inputTestFile = constants.dataPath + '/' + result['amostra'] + '/' + result['comparacao'] + '/Teste_' + fileIndex + constants.fileExtension
+		(inputData, inputLabels) = fmm.getInputDataFromFile(inputTestFile)
+		
+		# Armazena apenas as colunas selecionadas
+		outputData = []
+		for row in inputData:
+			outputData.append(itemgetter(*result['indices'])(row))
+		
+		# Escreve o novo arquivo
+		filePath = constants.newFilesPath + '/' + result['amostra'] + '/' + result['comparacao']
+		fileName = 'Teste_' + fileIndex + '.txt'
+		
+		if(not os.path.isdir(filePath)):
+			os.makedirs(filePath)
+		
+		newTestFile = open(filePath + '/' + fileName, 'w')
+		for i in range(0, len(outputData)):
+			newTestFile.write('{} {}\n'.format(' '.join(outputData[i]), inputLabels[i]))
+		newTestFile.close()
+		
+		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
+		resTestFile.write(filePath + '/' + fileName + '\n')
 
 
 	def writeNewFiles(self, selectionResults):
-		if(not os.path.isdir(self.newFilesPath)):
-			os.makedirs(self.newFilesPath)
-
-		fClassify = open(self.filesToClassifyFile, 'w')
+		if(not os.path.isdir(constants.resourcesDir)):
+			os.makedirs(constants.resourcesDir)
+			
+		resTrainingFile = open(constants.resTrainingFiles, 'w')
+		resTestFile = open(constants.resTestFiles, 'w')
+		
 		for result in selectionResults:
-			fileAnalisedIndex = result.getFileUsed()[(result.getFileUsed().index("_")+1) : result.getFileUsed().index(".")]
-			testFileName = "Teste_" + fileAnalisedIndex + self.fileExtension
-			existingTestFilePath = self.dataPath + "/" + result.getSample() + "/" + result.getComparison() + "/" + testFileName
+			self.writeNewTrainingFile(result, resTrainingFile)
+			self.writeNewTestFile(result, resTestFile)
 
-			if(os.path.exists(existingTestFilePath)):
-				filePath = self.newFilesPath + '/' + result.getSample() + '/' + result.getComparison()
-				if(not os.path.isdir(filePath)):
-					os.makedirs(filePath)
-
-				print("Writing FILE: {}...".format(filePath + "/" + testFileName)),
-
-				fClassify.write('{}\n'.format(filePath + "/" + testFileName))
-
-				(matA, matB, labels) = fmm.getInputDataFromFile(existingTestFilePath)
-
-				selectedIndexes = result.getResultadoSelecao()
-				selectedIndexes = selectedIndexes[0:self.numberOfCl]
-
-				matA = np.take(matA, selectedIndexes, axis=1)
-				matB = np.take(matB, selectedIndexes, axis=1)
-
-				matA = matA.tolist()
-				matB = matB.tolist()
-
-				linesToWrite = []
-				# @relation
-				linesToWrite.append('@relation \'{}\''.format(testFileName))
-				linesToWrite.append('')
-				# @attribute x0 real
-				for i in range(0, len(selectedIndexes)):
-					linesToWrite.append('@attribute\tx{}\treal'.format(i+1))
-				linesToWrite.append('')
-				# @attribute class {1, 2}
-				linesToWrite.append('@attribute\tclass\t{}{}{}'.format('{', ', '.join(labels), '}'))
-				linesToWrite.append('')
-				# @data
-				linesToWrite.append('@data')
-				# DADOS
-				for row in matA:
-					row.append(labels[0])
-					linesToWrite.append(' '.join(str(c) for c in row))
-				for row in matB:
-					row.append(labels[1])
-					linesToWrite.append(' '.join(str(c) for c in row))
-
-				f = open(filePath + '/' + testFileName, 'w')
-				for line in linesToWrite:
-					f.write(line + '\n')
-				f.close()
-				print("OK")
-
-			else:
-				print("FILE DOES NOT EXISTS! : " + existingTestFilePath)
-
-		fClassify.close()
-
-
-	'''
-	Escreve as linhas no arquivo utilizando o formato:
-	[filePath];[amostra];[comparacao];[nomeDoArquivoUsado];[indices,]\n
-	'''
-	def writeResults(self, results):
-		print("Writing results..."),
-		if(not os.path.isdir(self.resultsDirPath)):
-			os.makedirs(self.resultsDirPath)
-
-		resultFile = open(self.resultsFilePath, 'w')
-
-		for r in results:
-			resultFile.write('{};{};{};{};{}\n'.format(r.getFilePath(), r.getSample(), r.getComparison(), r.getFileUsed(), ','.join(str(d) for d in r.getResultadoSelecao())))
-
-		resultFile.close()
-		print("OK")
-
+		resTrainingFile.close()
+		resTestFile.close()
+		
 
 	def run(self):
-		print(">> RUNNING SELECTION SCRIPT")
+		print("SELECT >> Starting feature selection process...")
 		results = []
-
-		samples = fmm.getSamplesName(self.dataPath)
-		numSamples = len(samples)
+		samples = fmm.getSamplesName(constants.dataPath)
 
 		for sample in samples:
-			print("Sample: {}".format(sample))
-			comparisons = fmm.getComparisonsNameFromSample(self.dataPath, sample)
-			numComparisons = len(comparisons)
+			comparisons = fmm.getComparisonsNameFromSample(constants.dataPath, sample)
 
 			for comparison in comparisons:
-				print("\tComparison: {}".format(comparison))
-				files = fmm.getSemFilesNames(self.dataPath, sample, comparison, self.fileExtension)
+				files = fmm.getSemFilesNames(constants.dataPath, sample, comparison, constants.fileExtension)
 
 				for f in files:
-					print('\t\tFile: {}: '.format(f)),
-					filePath = self.dataPath + '/' + sample + '/' + comparison + '/' + f
-					[matA, matB] = fmm.getInputDataFromFile(filePath)
-					capacidade = CapacityAnalysis(matA, matB)
+					filePath = constants.dataPath + '/' + sample + '/' + comparison + '/' + f
+					(data, labels) = fmm.getInputDataFromFile(filePath)
+					
+					capacidade = CapacityAnalysis(data, labels)
 					capacidade.calculate()
-					result = ResultadoSelecao(filePath, sample, comparison, f, capacidade.getSortedIndexes())
-					results.append(result)
-					print('OK\r'),
-			print('')
+					
+					r = dict(resultadoSelecao)
+					r['arquivo'] = filePath
+					r['indices'] = capacidade.getBestIndexes(self.numberOfCl)
+					r['amostra'] = sample
+					r['comparacao'] = comparison
+					r['nomeArquivo'] = f
+					results.append(r)
 
 		self.writeResults(results)
 		self.writeNewFiles(results)
+
+		print("SELECT >> Feature selection finished!")

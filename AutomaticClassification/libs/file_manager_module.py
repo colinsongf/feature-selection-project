@@ -1,20 +1,11 @@
 import os
-import sys
-import numpy as np
-from weka.core.converters import Loader
 from natsort import natsorted
 
 
-def setEncode():
-	reload(sys)
-	sys.setdefaultencoding('utf8')
-
-
 def listAllFilesFromPathWithSubstring(path, substring):
-	setEncode()
 	filePaths = []
 
-	for root, dirs, files in os.walk(path):
+	for _, _, files in os.walk(path):
 		for f in files:
 			if substring in f:
 				filePaths.append(f)
@@ -23,7 +14,6 @@ def listAllFilesFromPathWithSubstring(path, substring):
 
 
 def listAllDirFromPath(path):
-	setEncode()
 	dirs = []
 	listdir = os.listdir(path)
 	for d in listdir:
@@ -54,7 +44,7 @@ def getSemFilesNames(dataPath, sample, comparison, extension):
 	return SemFiles
 
 
-def getTesteFilesNames(sample, comparison, extension):
+def getTesteFilesNames(dataPath, sample, comparison, extension):
 	path = dataPath + '/' + sample + '/' + comparison
 	files = listAllFilesFromPathWithSubstring(path, extension)
 
@@ -68,42 +58,32 @@ def getTesteFilesNames(sample, comparison, extension):
 
 
 def getDataFromTxtFile(filePath):
-	data = np.loadtxt(filePath)
-
-	[rows, columns] = data.shape
-
-	labels = np.unique(data[:, (columns-1)])
-
-	matA = []
-	matB = []
-
-	for r in range(0, rows):
-		if(data[r, columns-1] == labels[0]):
-			matA.append(data[r, 0:(columns-1)])
-		elif(data[r, columns-1] == labels[1]):
-			matB.append(data[r, 0:(columns-1)])
-
-	matA = np.array(matA)
-	matB = np.array(matB)
-	return matA, matB, labels
+	f = open(filePath)
+	
+	labels = []
+	data = []
+	
+	for line in f:
+		row = line.split(' ')
+		for c in row:
+			if c == '\n':
+				row.remove(c)
+				
+		data.append(row[0:(len(row)-1)])
+		labels.append(row[len(row)-1])
+		
+	return data, labels
 
 
 def getDataFromArffFile(filePath):
 	f = open(filePath)
 
 	inData = False
-	matA = []
-	matB = []
 
+	labels = []
+	data = []
+	
 	for line in f:
-		if ('@attribute' in line) and ('class' in line):
-			#print(line)
-			classLabels = line.split('{')
-			classLabels = classLabels[1].split(',')
-			classLabels[1] = classLabels[1][0:(len(classLabels[1])-2)]
-			for label in classLabels:
-				label = float(label)
-
 		if('@data' in line):
 			inData = True
 			continue
@@ -113,23 +93,19 @@ def getDataFromArffFile(filePath):
 			for i in row:
 				if i == '\n':
 					row.remove(i)
-				else:
-					i = float(i)
 
-			if(row[len(row)-1] == classLabels[0]):
-				matA.append(row[0:len(row)-1])
-			elif(row[len(row)-1] == classLabels[1]):
-				matB.append(row[0:len(row)-1])
+			data.append(row[0:(len(row)-1)])
+			labels.append(row[len(row)-1])
 
 	f.close()
 
-	matA = np.array(matA).astype(np.float)
-	matB = np.array(matB).astype(np.float)
-	return matA, matB, classLabels
+	return data, labels
 
 
 def getInputDataFromFile(filePath):
 	if '.arff' in filePath:
 		return getDataFromArffFile(filePath)
-	else:
+	elif '.txt' in filePath:
 		return getDataFromTxtFile(filePath)
+	else:
+		raise Exception('Tipo de arquivo invalido!')

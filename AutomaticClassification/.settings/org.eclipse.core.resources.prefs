@@ -1,2 +1,4 @@
 eclipse.preferences.version=1
-encoding//libs/ClassificationProcess.py=utf-8
+encoding//libs/ClassificationModule.py=utf-8
+encoding//libs/FeatureSelectionMethods/CapacityAnalysis.py=utf-8
+encoding//libs/SelectionModule.py=utf-8

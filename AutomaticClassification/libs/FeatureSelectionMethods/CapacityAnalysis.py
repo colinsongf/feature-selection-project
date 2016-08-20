@@ -5,42 +5,63 @@ class CapacityAnalysis(object):
 	########
 	# Attr #
 	########
-	matrixesToAnalyse	= None
-	capacityArray		= None
+	matA			= None
+	matB			= None
+	capacityArray	= None
 
 	###########
 	# Methods #
 	###########
-	def __init__(self, matrixA, matrixB):
-		x = np.array(matrixA)
-		y = np.array(matrixB)
+	def __init__(self, dataInput, labelInput):
+		(x, y) = self.assembleMatrixes(dataInput, labelInput)
 
 		(_, cX) = x.shape
 		(_, cY) = y.shape
 
 		if(cX != cY):
-			raise Exception('Different number of columns from matrixes!')
+			raise Exception('Numero diferente de descritores utilizados!')
 			
-		self.matrixesToAnalyse = [np.array(matrixA), np.array(matrixB)]
+		self.matA = x
+		self.matB = y
 
+
+	def assembleMatrixes(self, dataInput, labelInput):
+		matA = []
+		matB = []
+		uniqueLabels = set(labelInput)
+		uniqueLabels = list(uniqueLabels)
+		
+		if(len(uniqueLabels) > 2):
+			raise Exception('Numero de labels maior que 2!')
+		
+		for i in range(0, len(dataInput)):
+			if(labelInput[i] == uniqueLabels[0]):
+				matA.append(dataInput[i])
+			elif(labelInput[i] == uniqueLabels[1]):
+				matB.append(dataInput[i])
+				
+		matA = np.array(matA).astype(np.float)
+		matB = np.array(matB).astype(np.float)
+		return matA, matB
+	
 
 	def calculate(self):
 		# Pega as dimensões das matrizes dadas com entrada
-		(rowsA, colsA) = self.matrixesToAnalyse[0].shape
-		(rowsB, colsB) = self.matrixesToAnalyse[1].shape
+		(rowsA, colsA) 	= self.matA.shape
+		(rowsB, _) 		= self.matB.shape
 
 		# CALCULO DAS MEDIAS DAS MATRIZES
 		# Soma todas as linhas de cada coluna
-		sumA = np.sum(self.matrixesToAnalyse[0], axis=0)
-		sumB = np.sum(self.matrixesToAnalyse[1], axis=0)
+		sumA = np.sum(self.matA, axis=0)
+		sumB = np.sum(self.matB, axis=0)
 
 		# Calcula os valores médios dados por cada descritor
 		mediasA = np.divide(sumA, float(rowsA))
 		mediasB = np.divide(sumB, float(rowsB))
 
 		# Calcula a variância de cada descritor (coluna das matrizes)
-		varianciaA = np.var(self.matrixesToAnalyse[0], axis=0, ddof=1)
-		varianciaB = np.var(self.matrixesToAnalyse[1], axis=0, ddof=1)
+		varianciaA = np.var(self.matA, axis=0, ddof=1)
+		varianciaB = np.var(self.matB, axis=0, ddof=1)
 
 		# Cálculo da Análise de Capacidade
 		self.capacityArray = np.zeros((colsA))
