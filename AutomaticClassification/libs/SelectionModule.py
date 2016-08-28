@@ -32,6 +32,19 @@ class SelectionModule(object):
 			resultFile.write('{};{};{};{};{};{}\n'.format(r['arquivo'], r['amostra'], r['comparacao'], r['nomeArquivo'], r['metodo'],','.join(str(d) for d in r['indices'])))
 
 		resultFile.close()
+		
+
+	def writeFile(self, filePath, fileName, resourceFile, outputData, inputLabels):
+		if(not os.path.isdir(filePath)):
+			os.makedirs(filePath)
+		
+		newFile = open(filePath + '/' + fileName, 'w')
+		for i in range(0, len(outputData)):
+			newFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
+		newFile.close()
+		
+		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
+		resourceFile.write(filePath + '/' + fileName + '\n')
 
 
 	def writeNewTrainingFile(self, result, resTrainingFile):
@@ -45,17 +58,7 @@ class SelectionModule(object):
 		# Escreve o novo arquivo
 		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = result['nomeArquivo'][0 : result['nomeArquivo'].index('.')] + '.txt'
-		
-		if(not os.path.isdir(filePath)):
-			os.makedirs(filePath)
-		
-		newTrainingFile = open(filePath + '/' + fileName, 'w')
-		for i in range(0, len(outputData)):
-			newTrainingFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
-		newTrainingFile.close()
-		
-		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
-		resTrainingFile.write(filePath + '/' + fileName + '\n')
+		self.writeFile(filePath, fileName, resTrainingFile, outputData, inputLabels)
 
 
 	def writeNewTestFile(self, result, resTestFile):
@@ -72,20 +75,10 @@ class SelectionModule(object):
 		# Escreve o novo arquivo
 		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = 'Teste_' + fileIndex + '.txt'
-		
-		if(not os.path.isdir(filePath)):
-			os.makedirs(filePath)
-		
-		newTestFile = open(filePath + '/' + fileName, 'w')
-		for i in range(0, len(outputData)):
-			newTestFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
-		newTestFile.close()
-		
-		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
-		resTestFile.write(filePath + '/' + fileName + '\n')
+		self.writeFile(filePath, fileName, resTestFile, outputData, inputLabels)
 
 
-	def writeNewFiles(self, selectionResults):
+	def createNewFiles(self, selectionResults):
 		if(not os.path.isdir(constants.resourcesDir)):
 			os.makedirs(constants.resourcesDir)
 			
@@ -133,6 +126,6 @@ class SelectionModule(object):
 					
 
 		self.writeResults(results)
-		self.writeNewFiles(results)
+		self.createNewFiles(results)
 
 		print("SELECT >> Feature selection finished!")
