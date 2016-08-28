@@ -3,16 +3,11 @@
 import os
 import file_manager_module as fmm
 import constants
-from libs.FeatureSelectionMethods.CapacityAnalysis import CapacityAnalysis
+import definitions
+from libs.dicts import resultadoSelecao
+import libs.arrayHandler as ah 
+from libs.FeatureSelectionMethods.T_Statistics import T_Statistics
 from operator import itemgetter
-
-resultadoSelecao = {
-	'arquivo': None,
-	'indices': None,
-	'amostra': None,
-	'comparacao': None,
-	'nomeArquivo': None
-}
 
 class SelectionModule(object):
 
@@ -21,8 +16,8 @@ class SelectionModule(object):
 
 
 	def __init__(self, numberOfCl=1):
-		if(numberOfCl is None or numberOfCl <= 0):
-			raise Exception("Invalid NUMBER OF CLASSIFICATORS to select")
+		if(numberOfCl is None or numberOfCl < 0):
+			raise Exception("Invalid NUMBER OF CLASSIFICATORS to classify")
 		
 		self.numberOfCl = numberOfCl
 
@@ -34,7 +29,7 @@ class SelectionModule(object):
 		resultFile = open(constants.resultsDirPath + '/' + constants.resultsSelectionFileName, 'w')
 
 		for r in results:
-			resultFile.write('{};{};{};{};{}\n'.format(r['arquivo'], r['amostra'], r['comparacao'], r['nomeArquivo'], ','.join(str(d) for d in r['indices'])))
+			resultFile.write('{};{};{};{};{};{}\n'.format(r['arquivo'], r['amostra'], r['comparacao'], r['nomeArquivo'], r['metodo'],','.join(str(d) for d in r['indices'])))
 
 		resultFile.close()
 
@@ -48,7 +43,7 @@ class SelectionModule(object):
 			outputData.append(itemgetter(*result['indices'])(row))
 			
 		# Escreve o novo arquivo
-		filePath = constants.newFilesPath + '/' + result['amostra'] + '/' + result['comparacao']
+		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = result['nomeArquivo'][0 : result['nomeArquivo'].index('.')] + '.txt'
 		
 		if(not os.path.isdir(filePath)):
@@ -56,7 +51,7 @@ class SelectionModule(object):
 		
 		newTrainingFile = open(filePath + '/' + fileName, 'w')
 		for i in range(0, len(outputData)):
-			newTrainingFile.write('{} {}\n'.format(' '.join(outputData[i]), inputLabels[i]))
+			newTrainingFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
 		newTrainingFile.close()
 		
 		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
@@ -75,7 +70,7 @@ class SelectionModule(object):
 			outputData.append(itemgetter(*result['indices'])(row))
 		
 		# Escreve o novo arquivo
-		filePath = constants.newFilesPath + '/' + result['amostra'] + '/' + result['comparacao']
+		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = 'Teste_' + fileIndex + '.txt'
 		
 		if(not os.path.isdir(filePath)):
@@ -83,7 +78,7 @@ class SelectionModule(object):
 		
 		newTestFile = open(filePath + '/' + fileName, 'w')
 		for i in range(0, len(outputData)):
-			newTestFile.write('{} {}\n'.format(' '.join(outputData[i]), inputLabels[i]))
+			newTestFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
 		newTestFile.close()
 		
 		# "Avisa" a existência do novo arquivo no arquivo de RESOURCE
@@ -103,6 +98,20 @@ class SelectionModule(object):
 
 		resTrainingFile.close()
 		resTestFile.close()
+	
+		
+	def select(self, resultsList, data, labels, filePath, sample, comparison, usedFile):
+		if(definitions.T_statistics):
+			t_statistics = T_Statistics(data, labels)
+			t_statistics.calculate()
+			r = dict(resultadoSelecao)
+			r['arquivo'] = filePath
+			r['amostra'] = sample
+			r['comparacao'] = comparison
+			r['nomeArquivo'] = usedFile
+			r['metodo'] = 'T_Statistics'
+			r['indices'] = ah.getBestIndexes(t_statistics.getResult(), self.numberOfCl)
+			resultsList.append(r)
 		
 
 	def run(self):
@@ -120,16 +129,8 @@ class SelectionModule(object):
 					filePath = constants.dataPath + '/' + sample + '/' + comparison + '/' + f
 					(data, labels) = fmm.getInputDataFromFile(filePath)
 					
-					capacidade = CapacityAnalysis(data, labels)
-					capacidade.calculate()
+					self.select(results, data, labels, filePath, sample, comparison, f)
 					
-					r = dict(resultadoSelecao)
-					r['arquivo'] = filePath
-					r['indices'] = capacidade.getBestIndexes(self.numberOfCl)
-					r['amostra'] = sample
-					r['comparacao'] = comparison
-					r['nomeArquivo'] = f
-					results.append(r)
 
 		self.writeResults(results)
 		self.writeNewFiles(results)

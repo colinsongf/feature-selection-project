@@ -4,6 +4,7 @@ import os
 import string
 import file_manager_module as fmm
 import constants
+import definitions
 from sklearn import tree
 
 
@@ -44,14 +45,16 @@ class ClassificationModule(object):
 	def classify(self):
 		if(len(self.trainFiles) == len(self.testFiles)):
 			for i in range(0, len(self.trainFiles)):
-				# Treina o classificador
+				# Pega os dados dos arquivos de treinamento e teste
 				(trainingData, trainingLabels) = fmm.getInputDataFromFile(self.trainFiles[i])
-				clf = tree.DecisionTreeClassifier()
-				clf = clf.fit(trainingData, trainingLabels)
-				
-				# Classifica os arquivos de teste
 				(testData, testLabels) = fmm.getInputDataFromFile(self.testFiles[i])
-				self.resultList.append([self.testFiles[i], clf.score(testData, testLabels)])
+
+				if(definitions.DecisionTree):
+					# Treina o classificador
+					clf = tree.DecisionTreeClassifier()
+					clf = clf.fit(trainingData, trainingLabels)
+					# Classifica os arquivos de teste
+					self.resultList.append([self.testFiles[i], clf.score(testData, testLabels)])
 	
 	
 	def writeResults(self):
@@ -61,7 +64,7 @@ class ClassificationModule(object):
 		f = open(constants.resultsDirPath + '/' + constants.resultsClassificationFileName, 'w')
 
 		for result in self.resultList:
-			f.write('{} {}\n'.format(result[0], result[1]))
+			f.write('{};{}\n'.format(result[0], result[1]))
 		
 		f.close()
 

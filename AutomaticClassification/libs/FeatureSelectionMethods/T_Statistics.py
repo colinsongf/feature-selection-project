@@ -1,7 +1,7 @@
 # coding=utf-8
 import numpy as np
 
-class CapacityAnalysis(object):
+class T_Statistics(object):
 	########
 	# Attr #
 	########
@@ -83,24 +83,3 @@ class CapacityAnalysis(object):
 
 	def getResult(self):
 		return self.capacityArray
-
-
-	def getSortedIndexes(self):
-		return self.getBestIndexes(self.capacityArray.size)
-
-
-	def getBestIndexes(self, n):
-		if(not self.capacityArray.any()):
-			raise Exception('The capacity array has not been calculated yet!')
-		
-		sortedIndexes = np.argsort(self.capacityArray)
-		size = sortedIndexes.size
-
-		if(n <= 0 or n > size):
-			raise Exception('Invalid number of best N indexes!')
-
-		bestNIndexes = []
-		for i in range((size - 1), (size - 1 - n), -1):
-			bestNIndexes.append(sortedIndexes[i])
-
-		return bestNIndexes
