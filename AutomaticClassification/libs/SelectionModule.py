@@ -5,7 +5,7 @@ import file_manager_module as fmm
 import constants
 import definitions
 from libs.dicts import resultadoSelecao
-import libs.arrayHandler as ah 
+import libs.array_handler as ah
 from libs.FeatureSelectionMethods.T_Statistics import T_Statistics
 from operator import itemgetter
 
@@ -34,10 +34,18 @@ class SelectionModule(object):
 		resultFile.close()
 		
 
-	def writeFile(self, filePath, fileName, resourceFile, outputData, inputLabels):
+	def writeNewFile(self, fileName, resourceFile, result, inputData, inputLabels):
+		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
+		
+		# Armazena apenas as colunas selecionadas
+		outputData = []
+		for row in inputData:
+			outputData.append(itemgetter(*result['indices'])(row))
+		
 		if(not os.path.isdir(filePath)):
 			os.makedirs(filePath)
 		
+		# Escreve o arquivo
 		newFile = open(filePath + '/' + fileName, 'w')
 		for i in range(0, len(outputData)):
 			newFile.write('{} {}\n'.format(' '.join(str(o) for o in outputData[i]), inputLabels[i]))
@@ -49,16 +57,10 @@ class SelectionModule(object):
 
 	def writeNewTrainingFile(self, result, resTrainingFile):
 		(inputData, inputLabels) = fmm.getInputDataFromFile(result['arquivo'])
-		
-		# Armazena apenas as colunas selecionadas
-		outputData = []
-		for row in inputData:
-			outputData.append(itemgetter(*result['indices'])(row))
 			
 		# Escreve o novo arquivo
-		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = result['nomeArquivo'][0 : result['nomeArquivo'].index('.')] + '.txt'
-		self.writeFile(filePath, fileName, resTrainingFile, outputData, inputLabels)
+		self.writeNewFile(fileName, resTrainingFile, result, inputData, inputLabels)
 
 
 	def writeNewTestFile(self, result, resTestFile):
@@ -67,15 +69,9 @@ class SelectionModule(object):
 		inputTestFile = constants.dataPath + '/' + result['amostra'] + '/' + result['comparacao'] + '/Teste_' + fileIndex + constants.fileExtension
 		(inputData, inputLabels) = fmm.getInputDataFromFile(inputTestFile)
 		
-		# Armazena apenas as colunas selecionadas
-		outputData = []
-		for row in inputData:
-			outputData.append(itemgetter(*result['indices'])(row))
-		
 		# Escreve o novo arquivo
-		filePath = constants.newFilesPath + '/' + result['metodo'] + '/' + result['amostra'] + '/' + result['comparacao']
 		fileName = 'Teste_' + fileIndex + '.txt'
-		self.writeFile(filePath, fileName, resTestFile, outputData, inputLabels)
+		self.writeNewFile(fileName, resTestFile, result, inputData, inputLabels)
 
 
 	def createNewFiles(self, selectionResults):
@@ -121,7 +117,6 @@ class SelectionModule(object):
 				for f in files:
 					filePath = constants.dataPath + '/' + sample + '/' + comparison + '/' + f
 					(data, labels) = fmm.getInputDataFromFile(filePath)
-					
 					self.select(results, data, labels, filePath, sample, comparison, f)
 					
 
