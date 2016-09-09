@@ -1,6 +1,20 @@
-# Feature selection methods to use
-T_statistics    = True
+#############################
+# FEATURE SELECTION METHODS #
+#############################
+
+# Statistical #
+T_statistics	= True
+
+# Bioinspired #
 
 
-# Classifiers to use
-DecisionTree    = True
+#############################
+## CLASSIFICATION METHODS ###
+#############################
+DecisionTree	= True
+Lasso			= True
+SVM			= True
+# Naive Bayes
+GaussianNB		= False
+MultinomialNB	= False
+BernoulliNB		= False

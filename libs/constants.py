@@ -1,6 +1,6 @@
 import os
 
-dataPath                        = '/home/eduardo/Documentos/Pos-Graduacao/Trabalho mestrado/Dados/WFS'
+dataPath                        = '/home/eduardo/Documents/Pos-Graduacao/Trabalho mestrado/Dados/WFS'
 resultsDirPath                  = os.getcwd() + '/results'
 resultsSelectionFileName        = 'selection.txt'
 resultsClassificationFileName   = 'classification.txt'

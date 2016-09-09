@@ -5,7 +5,8 @@ import string
 import file_manager_module as fmm
 import constants
 import definitions
-from sklearn import tree
+from sklearn import tree, linear_model, svm
+from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 
 
 class ClassificationModule(object):
@@ -13,7 +14,7 @@ class ClassificationModule(object):
 	# ATTR #
 	trainFiles			= []
 	testFiles 			= []
-	classifierList 		= []
+	classifierList 			= []
 	resultList 			= []
 
 
@@ -42,6 +43,13 @@ class ClassificationModule(object):
 		f.close()
 
 
+	def fitAndAppendResult(self, clf, trainingData, trainingLabels, testData, testLabels):
+		# Treina o classificador
+		clf.fit(trainingData, trainingLabels)
+		# Classifica os arquivos de teste
+		self.resultList.append([self.testFiles[i], clf.score(testData, testLabels)])
+
+
 	def classify(self):
 		if(len(self.trainFiles) == len(self.testFiles)):
 			for i in range(0, len(self.trainFiles)):
@@ -50,11 +58,22 @@ class ClassificationModule(object):
 				(testData, testLabels) = fmm.getInputDataFromFile(self.testFiles[i])
 
 				if(definitions.DecisionTree):
-					# Treina o classificador
-					clf = tree.DecisionTreeClassifier()
-					clf = clf.fit(trainingData, trainingLabels)
-					# Classifica os arquivos de teste
-					self.resultList.append([self.testFiles[i], clf.score(testData, testLabels)])
+					fitAndAppendResult(tree.DecisionTreeClassifier(), trainingData, trainingLabels, testData, testLabels)
+					
+				if(definitions.Lasso):
+					fitAndAppendResult(linear_model.Lasso(alpha = 0.1), trainingData, trainingLabels, testData, testLabels)
+					
+				if(definitions.SVM):
+					fitAndAppendResult(svm.SVC(), trainingData, trainingLabels, testData, testLabels)
+					
+				if(definitions.GaussianNB):
+					fitAndAppendResult(GaussianNB(), trainingData, trainingLabels, testData, testLabels)
+					
+				if(definitions.MultinomialGaussianNB):
+					fitAndAppendResult(MultinomialNB(), trainingData, trainingLabels, testData, testLabels)
+					
+				if(definitions.BernoulliNB()):
+					fitAndAppendResult(BernoulliNB(), trainingData, trainingLabels, testData, testLabels)
 	
 	
 	def writeResults(self):
@@ -64,6 +83,7 @@ class ClassificationModule(object):
 		f = open(constants.resultsDirPath + '/' + constants.resultsClassificationFileName, 'w')
 
 		for result in self.resultList:
+			# {arquivo_classificado};{score}
 			f.write('{};{}\n'.format(result[0], result[1]))
 		
 		f.close()

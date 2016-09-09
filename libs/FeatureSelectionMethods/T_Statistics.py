@@ -7,7 +7,7 @@ class T_Statistics(object):
 	########
 	matA			= None
 	matB			= None
-	capacityArray	= None
+	capacityArray		= None
 
 	###########
 	# Methods #
