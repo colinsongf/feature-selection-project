@@ -1,3 +1,4 @@
+import definitions
 import numpy as np
 
 class Darwin(object):
@@ -8,4 +9,8 @@ class Darwin(object):
 
 	def initializePopulation(self, populationSize):
 		for i in range(0, populationSize):
-			self.population.append(np.random.randint(2, size=populationSize))
+			newIndividual = [0] * len(definitions.selectors) * len(definitions.classifiers)
+			
+			selectedFeatureNumber = np.random.randint(0, len(definitions.selectors) - 1)
+			newIndividual[selectedFeatureNumber] = 1
+
