@@ -12,10 +12,10 @@ from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 class ClassificationModule(object):
 
 	# ATTR #
-	trainFiles			= []
-	testFiles 			= []
-	classifierList 			= []
-	resultList 			= []
+	trainFiles		= []
+	testFiles 		= []
+	classifierList 	= []
+	resultList 		= []
 
 
 	# METHODS #
@@ -43,11 +43,11 @@ class ClassificationModule(object):
 		f.close()
 
 
-	def fitAndAppendResult(self, clf, trainingData, trainingLabels, testData, testLabels):
+	def fitAndAppendResult(self, fileIndex, clf, trainingData, trainingLabels, testData, testLabels, classifierLabel):
 		# Treina o classificador
 		clf.fit(trainingData, trainingLabels)
-		# Classifica os arquivos de teste
-		self.resultList.append([self.testFiles[i], clf.score(testData, testLabels)])
+		# Classifica os arquivos de teste e guarda os resultados
+		self.resultList.append([self.testFiles[fileIndex], classifierLabel, clf.score(testData, testLabels)])
 
 
 	def classify(self):
@@ -58,22 +58,22 @@ class ClassificationModule(object):
 				(testData, testLabels) = fmm.getInputDataFromFile(self.testFiles[i])
 
 				if(definitions.DecisionTree):
-					fitAndAppendResult(tree.DecisionTreeClassifier(), trainingData, trainingLabels, testData, testLabels)
+					self.fitAndAppendResult(i, tree.DecisionTreeClassifier(), trainingData, trainingLabels, testData, testLabels, "DecisionTree")
 					
 				if(definitions.Lasso):
-					fitAndAppendResult(linear_model.Lasso(alpha = 0.1), trainingData, trainingLabels, testData, testLabels)
+					self.fitAndAppendResult(i, linear_model.Lasso(alpha = 0.1), trainingData, trainingLabels, testData, testLabels, "Lasso")
 					
 				if(definitions.SVM):
-					fitAndAppendResult(svm.SVC(), trainingData, trainingLabels, testData, testLabels)
+					self.fitAndAppendResult(i, svm.SVC(), trainingData, trainingLabels, testData, testLabels, "SVM")
 					
 				if(definitions.GaussianNB):
-					fitAndAppendResult(GaussianNB(), trainingData, trainingLabels, testData, testLabels)
+					self.fitAndAppendResult(i, GaussianNB(), trainingData, trainingLabels, testData, testLabels, "GaussianNB")
 					
-				if(definitions.MultinomialGaussianNB):
-					fitAndAppendResult(MultinomialNB(), trainingData, trainingLabels, testData, testLabels)
+				if(definitions.MultinomialNB):
+					self.fitAndAppendResult(i, MultinomialNB(), trainingData, trainingLabels, testData, testLabels, "MultinomialNB")
 					
-				if(definitions.BernoulliNB()):
-					fitAndAppendResult(BernoulliNB(), trainingData, trainingLabels, testData, testLabels)
+				if(definitions.BernoulliNB):
+					self.fitAndAppendResult(i, BernoulliNB(), trainingData, trainingLabels, testData, testLabels, "BernoulliNB")
 	
 	
 	def writeResults(self):
@@ -83,8 +83,12 @@ class ClassificationModule(object):
 		f = open(constants.resultsDirPath + '/' + constants.resultsClassificationFileName, 'w')
 
 		for result in self.resultList:
-			# {arquivo_classificado};{score}
-			f.write('{};{}\n'.format(result[0], result[1]))
+			# {arquivo_classificado};{classificador};{score}
+			for i in range(0, len(result)):
+				if i != (len(result)-1):
+					f.write('{};'.format(result[i]))
+				else:
+					f.write('{}\n'.format(result[i]))
 		
 		f.close()
 

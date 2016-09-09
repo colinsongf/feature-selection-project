@@ -12,7 +12,7 @@ T_statistics	= True
 ## CLASSIFICATION METHODS ###
 #############################
 DecisionTree	= True
-Lasso			= True
+Lasso			= False
 SVM			= True
 # Naive Bayes
 GaussianNB		= False
