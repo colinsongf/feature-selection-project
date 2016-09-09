@@ -13,7 +13,7 @@ T_statistics	= True
 #############################
 DecisionTree	= True
 Lasso			= False
-SVM			= True
+SVM				= True
 # Naive Bayes
 GaussianNB		= False
 MultinomialNB	= False
