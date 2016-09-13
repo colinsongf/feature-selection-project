@@ -4,6 +4,8 @@ from libs import constants
 naturalSelectionThreshold = 0.7
 # Quantidade de gerações
 numberOfGenerations = 100
+# Chance de mutação (0 - 100%)
+probMutation = 10 # 10%
 
 # Seletores e classificadores utilizados
 selectors = [constants.TStatistics]
