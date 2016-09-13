@@ -15,7 +15,6 @@ class Darwin(object):
 		self.populationSize = populationSize
 		self.maxNumberOfFeatures = maxNumberOfFeatures
 		self.population = []
-		self.firstGeneration = True
 
 
 	# Cria um invidivíduo aleatório
@@ -113,7 +112,6 @@ class Darwin(object):
 		numberOfFittest = int(definitions.naturalSelectionThreshold * len(self.population))
 		fittestIndividuals = sorted(self.population, key=itemgetter('accuracy'), reverse=True)[0:numberOfFittest]
 		self.population = fittestIndividuals
-		self.firstGeneration = False
 
 
 	# Troca informação genética -> swap simples entre os indivíduos sorteados
@@ -191,8 +189,7 @@ class Darwin(object):
 
 
 	def run(self):
-		if(self.firstGeneration):
-			self.initializePopulation()
+		self.initializePopulation()
 
 		for i in range(self.maxIter):
 			self.evaluate()
