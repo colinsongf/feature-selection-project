@@ -7,7 +7,7 @@ from individual.Individual import Individual
 
 def generateIndividual(numberOfFeatures):
 	# Estrutura genética:
-	# Gene[0] -> espaço reservado para armazenar o arquivo utilizado (posteriormente)
+	# Gene[0] -> espaço reservado para armazenar o caminho do arquivo utilizado posteriormente
 	# Gene[1] -> int [0, numberOfFeatureSelectionMethods): representa o método de seleção a ser utilizado nesse indivíduo
 	# Gene[2] -> int [1, numberOfFeatures]: número de atributos a serem selecionados. Se maior que o número disponível, raise Exception
 	# Gene[3] -> int [0, numberOfClassificationMethods): representa o método de classificação a ser utilizado nesse indivíduo
