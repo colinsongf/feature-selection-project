@@ -8,10 +8,10 @@ resultadoSelecao = {
 }
 
 gene = {
-	'trainingFile' = None,
-	'testFile' = None,
-	'selectionMethod' = None,
-	'maxNumberFeaturesSelected' = None,
-	'classificationMethod' = None,
-	'accuracy' = None
+	'trainingFile': None,
+	'testFile': None,
+	'selectionMethod': None,
+	'maxNumberFeaturesSelected': None,
+	'classificationMethod': None,
+	'accuracy': None
 }
