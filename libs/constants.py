@@ -9,3 +9,12 @@ resourcesDir                    = os.getcwd() + '/resources'
 resTrainingFiles                = resourcesDir + '/trainingFilePaths.txt'
 resTestFiles                    = resourcesDir + '/testFilePaths.txt'
 fileExtension                   = '.arff'
+
+# Literais
+TStatistics = "TStatistics"
+DecisionTree = "DecisionTree"
+Lasso = "Lasso"
+SVM = "SVM"
+GaussianNB = "GaussianNaiveBayes"
+MultinomialNB = "MultinomialNB"
+BernoulliNB = "BernoulliNB"
