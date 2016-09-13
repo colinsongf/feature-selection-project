@@ -6,3 +6,12 @@ resultadoSelecao = {
     'metodo' : None,
     'indices': None
 }
+
+gene = {
+	'trainingFile' = None,
+	'testFile' = None,
+	'selectionMethod' = None,
+	'maxNumberFeaturesSelected' = None,
+	'classificationMethod' = None,
+	'accuracy' = None
+}

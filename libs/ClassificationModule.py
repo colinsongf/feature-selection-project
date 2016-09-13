@@ -19,6 +19,10 @@ class ClassificationModule(object):
 
 
 	# METHODS #
+	def __init__(self):
+		sel.readDataPaths();
+
+
 	def readDataPaths(self):
 		# Lê os caminhos dos arquivos de treinamento
 		f = open(constants.resTrainingFiles, 'r')

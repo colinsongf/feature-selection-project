@@ -5,9 +5,9 @@ class T_Statistics(object):
 	########
 	# Attr #
 	########
-	matA			= None
-	matB			= None
-	capacityArray		= None
+	matA = None
+	matB = None
+	capacityArray = None
 
 	###########
 	# Methods #
