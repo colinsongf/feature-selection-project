@@ -114,7 +114,7 @@ class Darwin(object):
 	def crossover(self):
 		numberOfBornChilds = self.populationSize - len(self.population)
 
-		mutationsOccurred = 0
+		mutatedChildren = 0
 		
 		for i in range(numberOfBornChilds):
 			parent1 = self.population[i]
@@ -131,12 +131,12 @@ class Darwin(object):
 				child = self.createDeterminedIndividual(parent2['selectionMethod'], childNumberOfFeatures, parent1['classificationMethod'])
 
 			if(np.random.random() <= definitions.probMutation):
-				mutationsOccurred += 1
+				mutatedChildren += 1
 				self.mutate(child)
 
 			self.population.append(child)
 		
-		mutationRate = float(mutationsOccurred) / float(numberOfBornChilds)
+		mutationRate = float(mutatedChildren) / float(numberOfBornChilds)
 		print("\tMutations rate: {0:.2f}%".format(mutationRate * 100))
 
 
@@ -181,7 +181,7 @@ class Darwin(object):
 		fittestIndividuals = [fittest]
 
 		for i in range(1, len(self.population)):
-			if(self.population[i]['accuracy'] == fittest):
+			if(self.population[i]['accuracy'] == fittest['accuracy']):
 				fittestIndividuals.append(self.population[i])
 
 		return fittestIndividuals
