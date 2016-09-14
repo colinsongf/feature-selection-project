@@ -10,7 +10,7 @@ populationSize = 100
 # Quantidade máxima de características selecionadas
 maxNumberOfSelectedFeatures = 10
 # Quantidade de gerações
-numberOfGenerations = 100
+numberOfGenerations = 10
 # Chance de mutação (0.0 - 1.0)
 probMutation = 0.1
 

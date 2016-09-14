@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pandas as pd
 from operator import itemgetter
 from sklearn import tree, linear_model, svm
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
@@ -181,10 +182,16 @@ class Darwin(object):
 		fittestIndividuals = [fittest]
 
 		for i in range(1, len(self.population)):
+			# Se os individuos possuem a mesma acuracia
 			if(self.population[i]['accuracy'] == fittest['accuracy']):
-				fittestIndividuals.append(self.population[i])
+				# Mas são elementos distintos
+				if(fittest != self.population[i]['accuracy']):
+					fittestIndividuals.append(self.population[i])
+				
+				
+		resultDf = pd.DataFrame(fittestIndividuals)
 
-		return fittestIndividuals
+		return resultDf
 
 
 	def run(self):
