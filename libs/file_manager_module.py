@@ -1,4 +1,5 @@
 import os
+import string
 from natsort import natsorted
 
 
@@ -58,25 +59,27 @@ def getTesteFilesNames(dataPath, sample, comparison, extension):
 
 
 def getDataFromTxtFile(filePath):
-	f = open(filePath)
-	
-	labels = []
-	data = []
-	
-	for line in f:
-		row = line.split(' ')
-		for c in row:
-			if c == '\n':
-				row.remove(c)
-				
-		data.append(row[0:(len(row)-1)])
-		labels.append(row[len(row)-1])
-		
-	return data, labels
+	with open(filePath, 'r') as f:
+		labels = []
+		data = []
+
+		linesRead = f.read().splitlines()
+		for line in linesRead:
+			valuesFromLine = line.split()
+			
+			# Converte os dados lidos para float
+			valuesFromLine = [float(x) for x in valuesFromLine]
+			labels = [float(x) for x in labels]
+			
+			# Armazena os dados
+			data.append(valuesFromLine[0:(len(valuesFromLine)-1)])
+			labels.append(valuesFromLine[len(valuesFromLine)-1])
+			
+		return data, labels
 
 
 def getDataFromArffFile(filePath):
-	f = open(filePath)
+	f = open(filePath, 'r')
 
 	inData = False
 
@@ -89,7 +92,7 @@ def getDataFromArffFile(filePath):
 			continue
 
 		if(inData == True and line != '\n'):
-			row = line.split(' ')
+			row = line.split()
 			for i in row:
 				if i == '\n':
 					row.remove(i)

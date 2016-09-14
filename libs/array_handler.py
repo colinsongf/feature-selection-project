@@ -9,7 +9,7 @@ def getBestIndexes(array, n):
 		raise Exception('Empty array!')
 	
 	sortedIndexes = np.argsort(array)
-	size = sortedIndexes.size
+	size = len(sortedIndexes)
 
 	if(n < 0 or n > size):
 		raise Exception('Invalid number of best N indexes!')
@@ -21,3 +21,17 @@ def getBestIndexes(array, n):
 		return bestNIndexes
 	else:
 		return sortedIndexes
+
+
+def getColumns2DList(listToFilter, columns):
+	newList = []
+
+	for row in listToFilter:
+		newRow = []
+
+		for index in columns:
+			newRow.append(row[index])
+
+		newList.append(newRow)
+
+	return newList

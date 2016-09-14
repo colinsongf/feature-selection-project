@@ -1,8 +1,5 @@
-from libs.SelectionModule import SelectionModule
-from libs.ClassificationModule import ClassificationModule
+from libs.darwin import Darwin
 
-selection = SelectionModule(5)
-selection.run()
-
-classification = ClassificationModule()
-classification.run()
+d_test = Darwin('/home/eduardo/Documents/Pos-Graduacao/Trabalho mestrado/Dados/WFS/kfolds/cll_fl/Sem_1.txt',
+                '/home/eduardo/Documents/Pos-Graduacao/Trabalho mestrado/Dados/WFS/kfolds/cll_fl/Teste_1.txt')
+d_test.run()

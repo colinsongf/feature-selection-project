@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 from operator import itemgetter
 from sklearn import tree, linear_model, svm
@@ -6,14 +9,14 @@ from . import array_handler, constants, definitions, dicts as customDicts, file_
 from FeatureSelectionMethods.T_Statistics import T_Statistics
 
 class Darwin(object):
-	def __init__(self, trainingFile, testFile, populationSize, maxNumberOfFeatures, maxIter):
+	def __init__(self, trainingFile, testFile):
 		self.trainingFile = trainingFile
 		self.testFile = testFile
 
-		self.maxIter = maxIter
-
-		self.populationSize = populationSize
-		self.maxNumberOfFeatures = maxNumberOfFeatures
+		self.maxIter = definitions.numberOfGenerations
+		self.populationSize = definitions.populationSize
+		self.maxNumberOfFeatures = definitions.maxNumberOfSelectedFeatures
+		
 		self.population = []
 
 
@@ -22,10 +25,11 @@ class Darwin(object):
 		newIndividual = dict(customDicts.gene)
 		newIndividual['trainingFile'] = self.trainingFile
 		newIndividual['testFile'] = self.testFile
-		newIndividual['selectionMethod'] = definitions.selectors[np.random.randint(0, len(definitions.selectors)-1, dtype='int')]
-		newIndividual['numberOfSelectedFeatures'] = np.random.randint(1, self.maxNumberOfFeatures + 1, dtype='int')
-		newIndividual['classificationMethod'] = definitions.classifiers[np.random.randint(0, len(definitions.classifier)-1, dtype='int')]
+		newIndividual['selectionMethod'] = definitions.selectors[np.random.randint(len(definitions.selectors))]
+		newIndividual['numberOfSelectedFeatures'] = np.random.random_integers(1, self.maxNumberOfFeatures)
+		newIndividual['classificationMethod'] = definitions.classifiers[np.random.randint(len(definitions.classifiers))]
 		newIndividual['accuracy'] = None
+		return newIndividual
 
 
 	# Cria um determinado indivíduo
@@ -37,6 +41,7 @@ class Darwin(object):
 		newIndividual['numberOfSelectedFeatures'] = numberOfSelectedFeatures
 		newIndividual['classificationMethod'] = classificationMethod
 		newIndividual['accuracy'] = None
+		return newIndividual
 
 
 	# Cria a população inicial
@@ -81,30 +86,17 @@ class Darwin(object):
 
 	def evaluate(self):
 		for individual in self.population:
-			(training_data_before, training_labels_before) = fmm.getInputDataFromFile(individual['trainingFile'])
-			(test_data_before, test_labels_before) = fmm.getInputDataFromFile(individual['testFile'])
+			(training_data, training_labels) = fmm.getInputDataFromFile(individual['trainingFile'])
+			(test_data, test_labels) = fmm.getInputDataFromFile(individual['testFile'])
 
 			selectedFeaturesIndexes = self.selectFeatures(individual)
 
-			training_data_after = []
-			training_labels_after = []
-			test_data_after = []
-			test_labels_after = []
-
 			# Guarda apenas as colunas selecionadas
-			for row in training_data_before:
-				training_data_after.append(list(itemgetter(*selectedFeaturesIndexes)(row)))
-
-			training_labels_after = list(itemgetter(*selectedFeaturesIndexes)(training_labels_before))
-
-			for row in test_data_before:
-				test_data_after.append(list(itemgetter(*selectedFeaturesIndexes)(row)))
-
-			test_labels_after = list(itemgetter(*selectedFeaturesIndexes)(training_labels_before))
-
+			training_data = array_handler.getColumns2DList(training_data, selectedFeaturesIndexes)
+			test_data = array_handler.getColumns2DList(test_data, selectedFeaturesIndexes)
 
 			# Classifica e armazena o resultado obtido
-			individual['accuracy'] = self.classify(individual, training_data_after, training_labels_after, test_data_after, test_labels_after)
+			individual['accuracy'] = self.classify(individual, training_data, training_labels, test_data, test_labels)
 
 
 	# Seleciona os indivíduos mais aptos
@@ -112,6 +104,7 @@ class Darwin(object):
 		numberOfFittest = int(definitions.naturalSelectionThreshold * len(self.population))
 		fittestIndividuals = sorted(self.population, key=itemgetter('accuracy'), reverse=True)[0:numberOfFittest]
 		self.population = fittestIndividuals
+		print("\tFittest: {}".format(self.population[0]['accuracy']))
 
 
 	# Troca informação genética -> swap simples entre os indivíduos sorteados
@@ -119,26 +112,32 @@ class Darwin(object):
 	# Gene[numberOfSelectedFeatures]
 	# Gene[classificationMethod]
 	def crossover(self):
-		previousPopulationSize = len(self.population)
+		numberOfBornChilds = self.populationSize - len(self.population)
 
-		for i in range(self.populationSize - previousPopulationSize):
-			parent1 = self.population[np.random.randint(previousPopulationSize), dtype='int']
-			parent2 = self.population[np.random.randint(previousPopulationSize), dtype='int']
+		mutationsOccurred = 0
+		
+		for i in range(numberOfBornChilds):
+			parent1 = self.population[i]
+			parent2 = self.population[i+1]
 
 			# Faz a média do número de características dos pais
 			childNumberOfFeatures = int( (parent1['numberOfSelectedFeatures'] + parent2['numberOfSelectedFeatures']) / 2)
 			if(childNumberOfFeatures < 1):
 				childNumberOfFeatures = 1
 			
-			if(np.random.randint(2) == 0):
+			if(np.random.random_integers(1) == 0):
 				child = self.createDeterminedIndividual(parent1['selectionMethod'], childNumberOfFeatures, parent2['classificationMethod'])
 			else:
 				child = self.createDeterminedIndividual(parent2['selectionMethod'], childNumberOfFeatures, parent1['classificationMethod'])
 
-			if(np.random.randint(100, dtype='int') <= definitions.probMutation):
-				mutate(child)
+			if(np.random.random() <= definitions.probMutation):
+				mutationsOccurred += 1
+				self.mutate(child)
 
 			self.population.append(child)
+		
+		mutationRate = float(mutationsOccurred) / float(numberOfBornChilds)
+		print("\tMutations rate: {0:.2f}%".format(mutationRate * 100))
 
 
 	# Muta o método de seleção
@@ -161,7 +160,7 @@ class Darwin(object):
 	def mutate(self, individual):
 		# Se existem mais de um método de seleção e mais de um de classificação disponíveis, escolha mutar um (50% de chance para cada)
 		if(len(definitions.selectors) > 1 and len(definitions.classifiers) > 1):
-			if(np.random.randint(2, dtype='int') == 0):
+			if(np.random.random_integers(1) == 1):
 				self.mutateSelectionMethod(individual)
 			else:
 				self.mutateClassificationMethod(individual)
@@ -189,12 +188,17 @@ class Darwin(object):
 
 
 	def run(self):
+		print("\n> Initializing population..."),
 		self.initializePopulation()
+		print("OK!")
 
+		print("> Starting iterations...")
 		for i in range(self.maxIter):
+			print("Iteration {}: Running...".format(i))
 			self.evaluate()
 			self.selectFittestIndividuals()
 			# Crossover and mutate
 			self.crossover()
+			print("Iteration {}: Done!\n".format(i))
 
-		print('Fittest individuals:\n{}'.format(self.getResults()))
+		print('\nFittest individuals:\n{}'.format(self.getResults()))
