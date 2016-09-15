@@ -11,6 +11,6 @@ This project depends on:
 #### Using Debian-like distributions:
 Considering you have Python 2.7 pre-installed in your system, run:
 ```
-sudo apt-get install python-devel python-setuptools python-pip python-wheel
-sudo pip install -U numpy scipy matplotlib pandas scikit-learn natsort
+$ sudo apt-get install python-devel python-setuptools python-pip python-wheel
+$ sudo pip install -U numpy scipy matplotlib pandas scikit-learn natsort
 ```
