@@ -112,7 +112,7 @@ class SelectionModule(object):
 			comparisons = fmm.getComparisonsNameFromSample(constants.dataPath, sample)
 
 			for comparison in comparisons:
-				files = fmm.getSemFilesNames(constants.dataPath, sample, comparison, constants.fileExtension)
+				files = fmm.getTrainingFilesNames(constants.dataPath, sample, comparison, constants.fileExtension)
 
 				for f in files:
 					filePath = constants.dataPath + '/' + sample + '/' + comparison + '/' + f

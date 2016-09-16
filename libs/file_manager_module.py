@@ -1,6 +1,6 @@
 import os
-import string
 from natsort import natsorted
+from . import constants
 
 
 def listAllFilesFromPathWithSubstring(path, substring):
@@ -32,30 +32,63 @@ def getComparisonsNameFromSample(dataPath, sample):
 	return listAllDirFromPath(dataPath + '/' + sample + '/')
 
 
-def getSemFilesNames(dataPath, sample, comparison, extension):
+def getTrainingFilesPath():
+	trainingFilesPath = []
+	samples = getSamplesName(constants.dataPath)
+
+	for sample in samples:
+		comparisons = getComparisonsNameFromSample(constants.dataPath, sample)
+
+		for comparison in comparisons:
+			files = getTrainingFilesNames(constants.dataPath, sample, comparison, constants.fileExtension)
+
+			for f in files:
+				trainingFilesPath.append(constants.dataPath + '/' + sample + '/' + comparison + '/' + f)
+				
+	return trainingFilesPath
+
+
+
+def getTrainingFilesNames(dataPath, sample, comparison, extension):
 	path = dataPath + '/' + sample + '/' + comparison
 	files = listAllFilesFromPathWithSubstring(path, extension)
 
-	SemFiles = []
+	trainingFiles = []
 	for f in files:
 		if 'Sem' in f:
-			SemFiles.append(f)
+			trainingFiles.append(f)
 
-	SemFiles = natsorted(SemFiles)
-	return SemFiles
+	trainingFiles = natsorted(trainingFiles)
+	return trainingFiles
 
 
-def getTesteFilesNames(dataPath, sample, comparison, extension):
+def getTestFilesPath():
+	testFilesPath = []
+	samples = getSamplesName(constants.dataPath)
+
+	for sample in samples:
+		comparisons = getComparisonsNameFromSample(constants.dataPath, sample)
+
+		for comparison in comparisons:
+			files = getTestFilesNames(constants.dataPath, sample, comparison, constants.fileExtension)
+
+			for f in files:
+				testFilesPath.append(constants.dataPath + '/' + sample + '/' + comparison + '/' + f)
+				
+	return testFilesPath
+
+
+def getTestFilesNames(dataPath, sample, comparison, extension):
 	path = dataPath + '/' + sample + '/' + comparison
 	files = listAllFilesFromPathWithSubstring(path, extension)
 
-	TesteFiles = []
+	testFiles = []
 	for f in files:
 		if 'Teste' in f:
-			TesteFiles.append(f)
+			testFiles.append(f)
 
-	TesteFiles = natsorted(TesteFiles)
-	return TesteFiles
+	testFiles = natsorted(testFiles)
+	return testFiles
 
 
 def getDataFromTxtFile(filePath):

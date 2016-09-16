@@ -10,22 +10,22 @@ from . import array_handler, constants, definitions, dicts as customDicts, file_
 from FeatureSelectionMethods.T_Statistics import T_Statistics
 
 class Darwin(object):
-	def __init__(self, trainingFile, testFile):
-		self.trainingFile = trainingFile
-		self.testFile = testFile
-
+	
+	def __init__(self):
 		self.maxIter = definitions.numberOfGenerations
 		self.populationSize = definitions.populationSize
 		self.maxNumberOfFeatures = definitions.maxNumberOfSelectedFeatures
-		
 		self.population = []
+		
+		self.trainingFiles = fmm.getTrainingFilesPath()
+		self.testFiles = fmm.getTestFilesPath()
 
 
 	# Cria um invidivíduo aleatório
 	def createRandomIndividual(self):
 		newIndividual = dict(customDicts.gene)
-		newIndividual['trainingFile'] = self.trainingFile
-		newIndividual['testFile'] = self.testFile
+		newIndividual['trainingFile'] = self.trainingFiles[np.random.randint(len(self.trainingFiles))]
+		newIndividual['testFile'] = self.trainingFiles[np.random.randint(len(self.trainingFiles))]
 		newIndividual['selectionMethod'] = definitions.selectors[np.random.randint(len(definitions.selectors))]
 		newIndividual['numberOfSelectedFeatures'] = np.random.random_integers(1, self.maxNumberOfFeatures)
 		newIndividual['classificationMethod'] = definitions.classifiers[np.random.randint(len(definitions.classifiers))]
@@ -34,10 +34,10 @@ class Darwin(object):
 
 
 	# Cria um determinado indivíduo
-	def createDeterminedIndividual(self, selectionMethod, numberOfSelectedFeatures, classificationMethod):
+	def createDeterminedIndividual(self, trainingFile, testFile, selectionMethod, numberOfSelectedFeatures, classificationMethod):
 		newIndividual = dict(customDicts.gene)
-		newIndividual['trainingFile'] = self.trainingFile
-		newIndividual['testFile'] = self.testFile
+		newIndividual['trainingFile'] = trainingFile
+		newIndividual['testFile'] = testFile
 		newIndividual['selectionMethod'] = selectionMethod
 		newIndividual['numberOfSelectedFeatures'] = numberOfSelectedFeatures
 		newIndividual['classificationMethod'] = classificationMethod
@@ -106,21 +106,53 @@ class Darwin(object):
 		fittestIndividuals = sorted(self.population, key=itemgetter('accuracy'), reverse=True)[0:numberOfFittest]
 		self.population = fittestIndividuals
 		print("\tFittest: {}".format(self.population[0]['accuracy']))
+		
+	
+	# Método de torneio
+	# Retorna o indivíduo que produzir o maior grau de acurácia
+	# Caso haja empate, considera o que utilizou a menor quantidade de características
+	def tournment(self, individual1, individual2):
+		if(individual1['accuracy'] > individual2['accuracy']):
+			return individual1
+		elif(individual2['accuracy'] > individual1['accuracy']):
+			return individual2
+		else:
+			if(individual1['numberOfSelectedFeatures'] < individual2['numberOfSelectedFeatures']):
+				return individual1
+			else:
+				return individual2
+		
+		
+	# Seleciona pais para a próxima geração
+	def getParent(self):
+		# Pega dois individuos distintos
+		individual1 = self.population[np.random.randint(len(self.population))]
+		individual2 = self.population[np.random.randint(len(self.population))]
+
+		# Garante que são indivíduos distintos		
+		while(individual2 == individual1):
+			individual2 = self.population[np.random.randint(len(self.population))]
+			
+		# Retorna o mais apto
+		return self.tournment(individual1, individual2)
 
 
-	# Troca informação genética -> swap simples entre os indivíduos sorteados
-	# Gene[selectionMethod]
-	# Gene[numberOfSelectedFeatures]
-	# Gene[classificationMethod]
+	# Troca de informação genética entre indivíduos selecionados aleatoriamente
+	# e indicados para serem pais da próxima geração através do método de torneio:
+	# avalia-se quem tem a maior acurácia
 	def crossover(self):
-		numberOfBornChilds = self.populationSize - len(self.population)
+		nNewChildren = self.populationSize - len(self.population)
 
 		mutatedChildren = 0
 		
-		for i in range(numberOfBornChilds):
-			parent1 = self.population[i]
-			parent2 = self.population[i+1]
+		for i in range(nNewChildren):
+			parent1 = self.getParent()
+			parent2 = self.getParent()
+			
+			while(parent2 != parent1):
+				parent2 = self.getParent()
 
+			# TODO: implementar PANDAS na população para tornar mais fácil a troca de informação genética
 			# Faz a média do número de características dos pais
 			childNumberOfFeatures = int( (parent1['numberOfSelectedFeatures'] + parent2['numberOfSelectedFeatures']) / 2)
 			if(childNumberOfFeatures < 1):
@@ -131,50 +163,41 @@ class Darwin(object):
 			else:
 				child = self.createDeterminedIndividual(parent2['selectionMethod'], childNumberOfFeatures, parent1['classificationMethod'])
 
-			if(np.random.random() <= definitions.probMutation):
-				mutatedChildren += 1
-				self.mutate(child)
+			if(np.random.random() <= definitions.initialProbMutation):
+				if(self.mutate(child)):
+					mutatedChildren += 1
 
 			self.population.append(child)
 		
-		mutationRate = float(mutatedChildren) / float(numberOfBornChilds)
+		mutationRate = float(mutatedChildren) / float(nNewChildren)
 		print("\tMutations rate: {0:.2f}%".format(mutationRate * 100))
-
-
-	# Muta o método de seleção
-	def mutateSelectionMethod(self, individual):
-		if( definitions.selectors.index(individual['selectionMethod']) == (len(definitions.selectors)-1) ):
-			individual['selectionMethod'] = definitions.selectors[0]
-		else:
-			individual['selectionMethod'] = definitions.selectors[definitions.selectors.index(individual['selectionMethod']) + 1]
-
-	# Muta o método de classificação
-	def mutateClassificationMethod(self, individual):
-		if( definitions.classifiers.index(individual['classificationMethod']) == (len(definitions.classifiers)-1) ):
-			individual['classificationMethod'] = definitions.classifiers[0]
-		else:
-			individual['classificationMethod'] = definitions.classifiers[definitions.classifiers.index(individual['classificationMethod']) + 1]
 
 
 	# Faz a mutação ou no método de seleção ou no método de classificação
 	# Estratégia de "Pegue o próximo"
 	def mutate(self, individual):
-		# Se existem mais de um método de seleção e mais de um de classificação disponíveis, escolha mutar um (50% de chance para cada)
+		# Se existem mais de um método de seleção E mais de um de classificação disponíveis, escolha mutar um (50% de chance para cada)
 		if(len(definitions.selectors) > 1 and len(definitions.classifiers) > 1):
-			if(np.random.random_integers(1) == 1):
-				self.mutateSelectionMethod(individual)
+			if(np.random.random_integers(1) == 0):
+				individual['selectionMethod'] = definitions.selectors[np.random.randint(len(definitions.selectors))]
+				return True
 			else:
-				self.mutateClassificationMethod(individual)
+				individual['classificationMethod'] = definitions.classifiers[np.random.randint(len(definitions.classifiers))]
+				return True
 
 		# Se existe mais de um método apenas de seleção
 		elif(len(definitions.selectors) > 1):
 			# Muta o método de seleção
-			self.mutateSelectionMethod(individual)
+			individual['selectionMethod'] = definitions.selectors[np.random.randint(len(definitions.selectors))]
+			return True
 
 		# Se existe mais de um método apenas de classificação
 		elif(len(definitions.classifiers) > 1):
 			# Muta o método de classificação
-			self.mutateClassificationMethod(individual)
+			individual['classificationMethod'] = definitions.classifiers[np.random.randint(len(definitions.classifiers))]
+			return True
+			
+		return False
 
 
 	def getResults(self):
